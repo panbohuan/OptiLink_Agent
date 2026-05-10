@@ -338,7 +338,7 @@ def _build_messages_with_history(self, message: str) -> List[Dict]:
 
 ## 联系方式
 
-- 项目仓库：[GitHub - OptiLink Agent](https://github.com/yourusername/OptiLink_Agent)
+- 项目仓库：[GitHub - OptiLink Agent](https://github.com/panbohuan/OptiLink_Agent)
 - 团队名称：OptiLink · 优联团队
 - 参赛赛道：夜间餐饮经济 · 大学生消费行为研究
 
