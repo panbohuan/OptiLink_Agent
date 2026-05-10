@@ -68,15 +68,15 @@ OptiLink Agent 是一套面向夜间经济领域的智能分析系统，针对�
 OptiLink_Agent/
 ├── src/
 │   ├── agent.py          # Agent 核心类（意图识别 + API调用 + 图表生成）
-│   └── prompts.py        # 系统指令集 + 分析提示词模板
+│   ├── prompts.py        # 系统指令集 + 分析提示词模板
+│   └── tools.py          # 数据分析工具（数据加载、统计摘要）
 ├── config.py             # 全局配置（API密钥、路径、超参数）
-├── main.py               # CLI 交互入口（命令解析 + 流式输出）
+├── main.py               # CLI 交互入口（命令解析 + 交互输出）
 ├── data/                 # 调研数据目录
 │   └── survey_data.xlsx  # 优联团队市场调研原始数据
 ├── reports/              # 图表输出目录（自动生成）
 ├── .env                  # 环境变量（API Key，不提交Git）
-├── .gitignore            # Git忽略规则
-└── requirements.txt      # 依赖清单
+└── .gitignore            # Git忽略规则
 ```
 
 ### 核心文件说明
