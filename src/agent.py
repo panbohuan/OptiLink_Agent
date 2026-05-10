@@ -6,6 +6,7 @@ import re
 from datetime import datetime
 from typing import Optional, List, Dict, Tuple
 from matplotlib import font_manager
+from src.prompts import SYSTEM_PROMPT
 
 from config import (
     DEEPSEEK_API_KEY,
@@ -99,7 +100,7 @@ class NightEconomyAgent:
             self.df = None
 
     def _build_messages_with_history(self, message: str) -> List[Dict]:
-        messages = []
+        messages = [{"role": "system", "content": SYSTEM_PROMPT}]
         for entry in self.conversation_history[-self.max_history_length :]:
             messages.append({"role": entry["role"], "content": entry["content"]})
         messages.append({"role": "user", "content": message})
