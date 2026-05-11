@@ -7,6 +7,8 @@ from datetime import datetime
 from typing import Optional, List, Dict, Tuple
 from matplotlib import font_manager
 from src.prompts import SYSTEM_PROMPT
+plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei", "Arial Unicode MS", "WenQuanYi Micro Hei"]
+plt.rcParams["axes.unicode_minus"] = False
 
 from config import (
     DEEPSEEK_API_KEY,
@@ -88,16 +90,39 @@ class NightEconomyAgent:
                 plt.rcParams["font.family"] = prop.get_name()
                 break
 
-    def _load_research_data(self) -> pd.DataFrame:
-        excel_files = [
-            os.path.join(self.data_path, f)
-            for f in os.listdir(self.data_path)
-            if f.endswith((".xlsx", ".xls"))
-        ]
-        if excel_files:
-            self.df = pd.read_excel(excel_files[0], engine="openpyxl")
-        else:
-            self.df = None
+    def _load_research_data(self):
+        self.stats = {}
+        for f in os.listdir(self.data_path):
+            if not f.endswith((".xlsx", ".xls")):
+                continue
+            df = pd.read_excel(os.path.join(self.data_path, f), header=None)
+            for i in range(len(df)):
+                if pd.isna(df.iloc[i, 0]):
+                    continue
+                row_str = str(df.iloc[i, 0]).strip()
+                if row_str and (row_str[0].isdigit() or row_str.startswith('Q')):
+                    labels, values = [], []
+                    j = i + 2
+                    while j < len(df):
+                        if pd.isna(df.iloc[j, 0]) or str(df.iloc[j, 0]).startswith('本题'):
+                            break
+                        labels.append(str(df.iloc[j, 0]))
+                        values.append(int(df.iloc[j, 1]) if pd.notna(df.iloc[j, 1]) else 0)
+                        j += 1
+                    key = self._get_key_from_text(row_str)
+                    if key and labels:
+                        self.stats[key] = {"labels": labels, "values": values, "title": row_str[:30]}
+
+    def _get_key_from_text(self, text: str) -> str:
+        kw_map = {
+            "性别": "性别", "年级": "年级", "生活费": "生活费",
+            "频率": "消费频率", "时段": "消费时段", "场所": "消费场所",
+            "客单价": "客单价", "动机": "消费动机", "种草": "种草渠道"
+        }
+        for kw, key in kw_map.items():
+            if kw in text:
+                return key
+        return None
 
     def _build_messages_with_history(self, message: str) -> List[Dict]:
         messages = [{"role": "system", "content": SYSTEM_PROMPT}]
@@ -120,63 +145,9 @@ class NightEconomyAgent:
         return None
 
     def _extract_data_from_excel(self, topic: str) -> Dict:
-        if self.df is None:
-            return {"labels": ["数据A", "数据B"], "values": [60, 40], "title": topic}
-
-        sample_data = {
-            "性别": {"labels": ["男", "女"], "values": [53, 35], "title": "性别分布"},
-            "年级": {
-                "labels": ["大一", "大二", "大三", "大四及以上"],
-                "values": [81, 1, 1, 5],
-                "title": "年级分布",
-            },
-            "生活费": {
-                "labels": [
-                    "1000以下",
-                    "1000-1500",
-                    "1500-2000",
-                    "2000-2500",
-                    "2500-3000",
-                    "3000以上",
-                ],
-                "values": [6, 26, 24, 8, 0, 0],
-                "title": "月均生活费分布",
-            },
-            "消费频率": {
-                "labels": ["几乎每天", "每周4-6次", "每周2-3次", "每周1次", "偶尔"],
-                "values": [5, 5, 22, 12, 0],
-                "title": "夜间消费频率",
-            },
-            "消费时段": {
-                "labels": ["20:00-22:00", "22:00-24:00", "24:00以后"],
-                "values": [51, 16, 3],
-                "title": "消费时段分布",
-            },
-            "消费场所": {
-                "labels": ["路边摊/夜市", "食堂/餐厅", "外卖/团购", "便利店"],
-                "values": [60, 28, 34, 18],
-                "title": "消费场所分布",
-            },
-            "客单价": {
-                "labels": ["10元以下", "10-20元", "20-35元", "35-50元", "50元以上"],
-                "values": [7, 20, 20, 10, 0],
-                "title": "客单价分布",
-            },
-            "消费动机": {
-                "labels": ["社交聚会", "放松解压", "学习/工作", "习惯性"],
-                "values": [55, 33, 43, 18],
-                "title": "消费动机分析",
-            },
-            "种草渠道": {
-                "labels": ["抖音/短视频", "小红书", "美团/大众点评", "朋友圈"],
-                "values": [52, 36, 26, 36],
-                "title": "种草渠道分析",
-            },
-        }
-
-        return sample_data.get(
-            topic, {"labels": ["类型A", "类型B"], "values": [50, 50], "title": topic}
-        )
+        if topic in self.stats:
+            return self.stats[topic]
+        return {"labels": ["A", "B"], "values": [50, 50], "title": topic}
 
     def _generate_pie_chart(self, data: Dict, save_path: str):
         colors = list(COLOR_SCHEME.values())[: len(data["labels"])]

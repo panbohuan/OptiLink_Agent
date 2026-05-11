@@ -1,9 +1,3 @@
-"""
-优联智能决策助手 - 夜间经济分析系统
-基于 DeepSeek 大模型 + 真实调研数据
-功能: 智能对话 + 自动数据可视化
-"""
-
 import sys
 import os
 import subprocess
@@ -14,7 +8,6 @@ from src.agent import NightEconomyAgent
 
 
 class TerminalUI:
-    """终端交互界面"""
 
     class Colors:
         HEADER = '\033[95m'
